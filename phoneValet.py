@@ -25,15 +25,21 @@ class PhoneValet(BotPlugin):
 
     @botcmd(split_args_with=' ')
     def say_to(self, mess, args):
+        """ Call to the specified contact, read you message and record the response
+         ex: !say to gbin Don't forget the milk !
+        """
         contact = args[0]
         message = ' '.join(args[1:])
         number, _ = self['contacts'][contact]
+        from_contact = self.get_current_contact(mess)
+        _, from_twilio = self['contacts'][from_contact]
+
         twilio_response = twiml.Response()
         twilio_response.say(message)
         self.next_action[contact] = (contact + 'has picked up', twilio_response)
         base_url = self.config['ERR_SERVER_BASE_URL']
         self.client.calls.create(to=number,
-                                 from_='+14084125623',
+                                 from_=from_twilio,
                                  url=base_url + '/next_action/%s/' % contact,
                                  status_callback=base_url + '/call_hangup/%s/' % contact,
                                  if_machine='Continue')
@@ -62,7 +68,7 @@ class PhoneValet(BotPlugin):
             if twilio == incoming_request['Called']:
                 self.send(CHATROOM_PRESENCE[0],
                           '@%s %s is calling you... what do you want to do ?\n\n    !msg : answer it with a message\n    !vm: redirect him to voicemail\n    !fw NAME: redirect it to this other person' % (
-                          name, incoming_request['Caller']), message_type='groupchat')
+                              name, incoming_request['Caller']), message_type='groupchat')
                 twilio_response.addSay("Please wait a moment while we try to contact %s" % name)
                 twilio_response.addPause(length=10)
                 twilio_response.addDial(real)
@@ -76,7 +82,7 @@ class PhoneValet(BotPlugin):
             if twilio == incoming_request['To']:
                 self.send(CHATROOM_PRESENCE[0],
                           '@%s %s is sending you an SMS :\n\n "%s"' % (
-                          name, incoming_request['From'], incoming_request['Body']), message_type='groupchat')
+                              name, incoming_request['From'], incoming_request['Body']), message_type='groupchat')
         return OK
 
 
@@ -84,7 +90,7 @@ class PhoneValet(BotPlugin):
     def incoming_vm(self, incoming_request, contact=None):
         logging.info("Incoming vm to %s from %s" % (contact, incoming_request['From']))
         self.send(CHATROOM_PRESENCE[0], '@%s %s has left a message, here is what I understood from it :\n\n    "%s"\n\n    Click here to listen to the audio message: %s ' % (
-        contact, incoming_request['From'], incoming_request['TranscriptionText'], incoming_request['RecordingUrl']), message_type='groupchat')
+            contact, incoming_request['From'], incoming_request['TranscriptionText'], incoming_request['RecordingUrl']), message_type='groupchat')
         return OK
 
     def set_next_action(self, contact, feedback, twilio_response):
@@ -107,14 +113,23 @@ class PhoneValet(BotPlugin):
 
     @botcmd
     def vm(self, mess, args):
+        """ Answer your incoming call and just play a standard "Sorry. I am not available. Please leave a message." and record the answer from the caller.
+         usage: !vm
+        """
         return self.answers_record_transcribe(self.get_current_contact(mess))
 
     @botcmd
     def msg(self, mess, args):
+        """ Answer your incoming call and the play a custom message passed as argument then record the response.
+         usage: !msg I am busy at the office, please call back in one hour.
+        """
         return self.answers_record_transcribe(self.get_current_contact(mess), args, feedback=' your caller is listening to your message')
 
     @botcmd
     def fw(self, mess, args):
+        """ Forward your incoming call to another contact registered on the system.
+         usage: !fw john
+        """
         contact = self.get_current_contact(mess)
         real, twilio = self['contacts'][args]
         twilio_response = twiml.Response()
@@ -124,11 +139,16 @@ class PhoneValet(BotPlugin):
 
     @botcmd(split_args_with=' ')
     def sms_to(self, mess, args):
+        """ Sends an sms to the specified contact.
+        usage: !sms to john Hey, how are you doing ?
+         """
         contact = args[0]
         message = ' '.join(args[1:])
         number, _ = self['contacts'][contact]
+        from_contact = self.get_current_contact(mess)
+        _, from_twilio = self['contacts'][from_contact]
         self.client.sms.messages.create(to=number,
-                                        from_='+14084125623', body=message)
+                                        from_=from_twilio, body=message)
 
         return "Valet: I sent the message to %s (%s)..." % (contact, number)
 

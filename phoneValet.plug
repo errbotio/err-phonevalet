@@ -1,6 +1,6 @@
 [Core]
 Name = PhoneValet
-Module = PhoneValet
+Module = phoneValet
 
 [Documentation]
 Description = manage you calls and sms by chatting
