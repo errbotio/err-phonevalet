@@ -155,7 +155,8 @@ class PhoneValet(BotPlugin):
 
     @botcmd(split_args_with=' ')
     def add_contact(self, mess, args):
-        """ !add contact NAME REAL_NUMBER [TWILIO_NUMBER]
+        """Add a contact to the contact list
+        !add contact NAME REAL_NUMBER [TWILIO_NUMBER]
         """
         contacts = self.get('contacts', {})
         if len(args) == 3:
@@ -169,6 +170,9 @@ class PhoneValet(BotPlugin):
 
     @botcmd(split_args_with=' ')
     def del_contact(self, mess, args):
+        """Remove a contact
+         ex : !del contact gbin
+        """
         contacts = self.get('contacts', {})
         del contacts[args[0]]
         self['contacts'] = contacts
@@ -176,4 +180,7 @@ class PhoneValet(BotPlugin):
 
     @botcmd(split_args_with=' ')
     def contacts(self, mess, args):
+        """Lists the current registered contacts.
+        ex : !contacts
+        """
         return '\n'.join("%s -> re:%s tw:%s" % (entry, tw, re) for entry, (tw, re) in self.get('contacts', {}).iteritems())
