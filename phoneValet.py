@@ -76,7 +76,7 @@ class PhoneValet(BotPlugin):
                 return twilio_response.toxml()
 
     @webhook(r'/incoming_sms/')
-    def incoming_call(self, incoming_request):
+    def incoming_sms(self, incoming_request):
         logging.info("Incoming sms to %s from %s" % (incoming_request['To'], incoming_request['From']))
         for name, (real, twilio) in self.get('contacts', {}).iteritems():
             if twilio == incoming_request['To']:
