@@ -1,7 +1,6 @@
 import logging
 from config import CHATROOM_PRESENCE
-from errbot import BotPlugin
-from errbot import botcmd
+from errbot import BotPlugin, botcmd
 from twilio import twiml
 from twilio.rest import TwilioRestClient
 from errbot.builtins.webserver import webhook, OK
@@ -36,7 +35,7 @@ class PhoneValet(BotPlugin):
 
         twilio_response = twiml.Response()
         twilio_response.say(message)
-        self.next_action[contact] = (contact + 'has picked up', twilio_response)
+        self.next_action[contact] = (contact + ' has picked up', twilio_response)
         base_url = self.config['ERR_SERVER_BASE_URL']
         self.client.calls.create(to=number,
                                  from_=from_twilio,
