@@ -19,7 +19,10 @@ class PhoneValet(BotPlugin):
 
     def activate(self):
         super(PhoneValet, self).activate()
-        self.client = TwilioRestClient(self.config['ACCOUNT_SID'], self.config['AUTH_TOKEN'])
+        if self.config:
+            self.client = TwilioRestClient(self.config['ACCOUNT_SID'], self.config['AUTH_TOKEN'])
+        else:
+            logging.info("PhoneValet is not configured yet.")
 
 
     @botcmd(split_args_with=' ')
